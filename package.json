@@ -28,7 +28,9 @@
     "scripts": {
         "vscode:prepublish": "nimble release"
     },
-    "dependencies": {},
+    "dependencies": {
+        "vscode-languageclient": "7.0.0"
+    },
     "devDependencies": {
         "@types/mocha": "^5.2.7",
         "@types/node": "^10.17.17",
@@ -232,6 +234,34 @@
                     "default": true,
                     "description": "Enable calling nimsuggest process to provide completion suggestions, hover suggestions, etc.\nThis option requires restart to take effect.",
                     "scope": "resource"
+                },
+                "nim.enableLsp": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Use `nimlsp` language server.",
+                    "scope": "resource"
+                },
+                "nim.rootConfig": {
+                    "type": "array",
+                    "default": false,
+                    "description": "",
+                    "scope": "resource",
+                    "items": {
+                        "required": [
+                            "root",
+                            "regexps"
+                        ],
+                        "properties": {
+                            "root": {
+                                "type": "string",
+                                "description": "Relative to the workspace root path to the file to be used for root."
+                            },
+                            "regexps": {
+                                "type": "array",
+                                "description": "Regexes to match."
+                            }
+                        }
+                    }
                 },
                 "nim.useNimsuggestCheck": {
                     "type": "boolean",
