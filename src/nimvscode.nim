@@ -3,7 +3,7 @@
 when not defined(js):
   {.error: "This module only works on the JavaScript platform".}
 
-import platform/[vscodeApi, languageClientApi]
+import platform/vscodeApi
 import platform/js/[jsre, jsString, jsNodeFs, jsNodePath, jsNodeCp]
 
 import std/jsconsole
@@ -39,8 +39,6 @@ var state: ExtensionState
 var diagnosticCollection {.threadvar.}: VscodeDiagnosticCollection
 var fileWatcher {.threadvar.}: VscodeFileSystemWatcher
 var terminal {.threadvar.}: VscodeTerminal
-var client {.threadvar.}: VscodeLanguageClient
-var installPerformed {.threadvar.}: bool
 
 type
   # FileExtensions* {.pure, size: sizeof(cint).} = enum
@@ -296,45 +294,41 @@ proc clearCachesCmd(): void =
   let config = vscode.workspace.getConfiguration("files")
   discard clearCaches(config.getStrBoolMap("watcherExclude", defaultIndexExcludeGlobs))
 
-proc initializeClient(nimls: cstring) =
-  console.log("Starting nimls.")
-  let
-    serverOptions = ServerOptions{
-      run: Executable{command: nimls, transport: "stdio" },
-      debug: Executable{command: nimls, transport: "stdio" }
-    }
-    clientOptions = LanguageClientOptions{
-      documentSelector: @[cstring("nim")]
-    }
-
-    client = vscodeLanguageClient.newLanguageClient(
-       cstring("nimls"),
-       cstring("Nim Language Server"),
-       serverOptions,
-       clientOptions)
-  client.start()
-
-proc startLanguageServer(tryInstall: bool) =
+proc startLanguageServer(tryInstall: bool, state: ExtensionState) =
   let rawPath = getBinPath("nimls")
   if rawPath.isNil or not fs.existsSync(path.resolve(rawPath)):
     console.log("nimls not found on path")
-    if tryInstall and not installPerformed:
+    if tryInstall and not state.installPerformed:
       vscode.window.showInformationMessage("Unable to find nimls, trying to install it via 'nimble'")
-      installPerformed = true
+      state.installPerformed = true
       discard cp.exec(
         # TODO change the url from yyoncho to nim-lang once it is merged to nim-lang
         getNimbleExecPath() & " install https://github.com/yyoncho/langserver --accept",
         ExecOptions{},
         proc(err: ExecError, stdout: cstring, stderr: cstring): void =
           console.log("Nimble install finished, checking if nimls is already present.")
-          startLanguageServer(false)
-      )
+          startLanguageServer(false, state))
     else:
       vscode.window.showInformationMessage("Unable to find/install `nimls`.")
   else:
     let nimls = path.resolve(rawPath);
     console.log(fmt"nimls found: {nimls}")
-    initializeClient(nimls)
+    console.log("Starting nimls.")
+    let
+      serverOptions = ServerOptions{
+        run: Executable{command: nimls, transport: "stdio" },
+        debug: Executable{command: nimls, transport: "stdio" }
+      }
+      clientOptions = LanguageClientOptions{
+        documentSelector: @[cstring("nim")]
+      }
+
+      state.client = vscodeLanguageClient.newLanguageClient(
+         cstring("nimls"),
+         cstring("Nim Language Server"),
+         serverOptions,
+         clientOptions)
+    state.client.start()
 
 proc activate*(ctx: VscodeExtensionContext): void =
   var config = vscode.workspace.getConfiguration("nim")
@@ -358,7 +352,7 @@ proc activate*(ctx: VscodeExtensionContext): void =
   discard vscode.workspace.onDidChangeConfiguration(configUpdate)
 
   if config.getBool("enableLsp"):
-    startLanguageServer(true)
+    startLanguageServer(true, state)
   elif config.getBool("enableNimsuggest"):
     initNimSuggest()
     ctx.subscriptions.add(vscode.languages.registerCompletionItemProvider(mode,

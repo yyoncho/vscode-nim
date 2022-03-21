@@ -5,6 +5,8 @@ from platform/vscodeApi import VscodeExtensionContext,
     VscodeOutputChannel,
     VscodeWorkspaceFolder
 
+from platform/languageClientApi import VscodeLanguageClient
+
 type
   Backend* = cstring
   Timestamp* = cint
@@ -16,6 +18,11 @@ type
     config*: VscodeWorkspaceConfiguration
 
     channel*: VscodeOutputChannel
+
+    client*: VscodeLanguageClient
+
+    installPerformed*: bool
+
 
 # type
 #   SolutionKind* {.pure.} = enum
@@ -29,7 +36,7 @@ type
 #     backend*: Backend
 #     nimble*: VscodeUri
 #     updateTime*: Timestamp
-  
+
 #   ProjectKind* {.pure.} = enum
 #     pkNim, pkNims, pkNimble
 
