@@ -117,23 +117,19 @@ lines in your config:
 
 Similar to `vscode-nim` [Nim Language Server](https://github.com/Nim-lang/langserver) uses `nimsuggest` under the
 hood and to control the way `nimsuggest` is created you can use
-`nim.rootConfig`. Here it is a sample config:
+`nim.projectMapping`. Here it is a sample config:
 
 ``` json
 {
     "nim.enableLsp": true,
-    "nim.rootConfig": [{
+    "nim.projectMapping": [{
         // open files under tests using one nimsuggest instance started with root = test/all.nim
-        "root": "tests/all.nim",
-        "regexps": [
-            "tests/.*\\.nim"
-        ]
+        "projectFile": "tests/all.nim",
+        "fileRegex": "tests/.*\\.nim"
     }, {
         // everything else - use main.nim as root.
-        "root": "main.nim",
-        "regexps": [
-            ".*\\.nim"
-        ]
+        "projectFile": "main.nim",
+        "fileRegex": ".*\\.nim"
     }]
 }
 ```
@@ -141,7 +137,6 @@ hood and to control the way `nimsuggest` is created you can use
 * (Re)starting `nimsuggest` subprocess
 
 Use `Command palette...`  -> `Source actions` -> `Restart nimsuggest`
-
 
 ### Commands
 
