@@ -1,8 +1,10 @@
 import std/jsconsole
-from std/strformat import fmt
-from tools/nimBinTools import getNimbleExecPath
 import platform/[vscodeApi, languageClientApi]
 
+import platform/js/[jsNodeFs, jsNodePath, jsNodeCp]
+
+from std/strformat import fmt
+from tools/nimBinTools import getNimbleExecPath, getBinPath
 from spec import ExtensionState
 
 proc startLanguageServer(tryInstall: bool, state: ExtensionState) =
@@ -34,11 +36,11 @@ proc startLanguageServer(tryInstall: bool, state: ExtensionState) =
         documentSelector: @[cstring("nim")]
       }
 
-      state.client = vscodeLanguageClient.newLanguageClient(
-         cstring("nimls"),
-         cstring("Nim Language Server"),
-         serverOptions,
-         clientOptions)
+    state.client = vscodeLanguageClient.newLanguageClient(
+       cstring("nimls"),
+       cstring("Nim Language Server"),
+       serverOptions,
+       clientOptions)
     state.client.start()
 
- export startLanguageServer
+export startLanguageServer

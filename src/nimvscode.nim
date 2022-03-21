@@ -4,11 +4,10 @@ when not defined(js):
   {.error: "This module only works on the JavaScript platform".}
 
 import platform/vscodeApi
-import platform/js/[jsre, jsString, jsNodeFs, jsNodePath, jsNodeCp]
+import platform/js/[jsre, jsString, jsNodeFs, jsNodePath]
 
 import std/jsconsole
 from std/strformat import fmt
-from tools/nimBinTools import getNimbleExecPath
 
 from spec import ExtensionState
 
