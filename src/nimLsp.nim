@@ -2,10 +2,24 @@ import std/jsconsole
 import platform/[vscodeApi, languageClientApi]
 
 import platform/js/[jsNodeFs, jsNodePath, jsNodeCp]
+import tables
 
 from std/strformat import fmt
 from tools/nimBinTools import getNimbleExecPath, getBinPath
 from spec import ExtensionState
+
+proc expand(client: VscodeLanguageClient, doc: VscodeTextDocument = nil): Future[void] {.async.} =
+  discard
+  # let result = client.sendRequest(
+  #   "extension/expandAll".cstring,
+  #   {
+  #     "position": vscode.window.activeTextEditor.selection.active,
+  #     "textDocument": vscode.window.activeTextEditor.selection.active,
+  #    }.toJs,
+  #   nil)
+  # echo "----------"
+  # echo (await result).to(cstring)
+  # echo "----------"
 
 proc startLanguageServer(tryInstall: bool, state: ExtensionState) =
   let rawPath = getBinPath("nimlangserver")
@@ -44,5 +58,8 @@ proc startLanguageServer(tryInstall: bool, state: ExtensionState) =
        serverOptions,
        clientOptions)
     state.client.start()
+
+    vscode.commands.registerCommand("nim.expand") do (doc: VscodeTextDocument = nil) -> Future[void]:
+      expand(state.client, doc)
 
 export startLanguageServer

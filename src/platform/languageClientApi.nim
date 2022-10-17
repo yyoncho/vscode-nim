@@ -9,6 +9,9 @@ type
   VscodeLanguageClient* = ref VscodeLanguageClientObj
   VscodeLanguageClientObj {.importc.} = object of JsRoot
 
+  VscodeCancellationToken* = ref VscodeCancellationTokenObj
+  VscodeCancellationTokenObj {.importc.} = object of JsRoot
+
   Executable* = ref ExecutableObj
   ExecutableObj {.importc.} = object of JsObject
     command*: cstring
@@ -37,5 +40,10 @@ proc newLanguageClient*(
 
 proc start*(s: VscodeLanguageClient): void {.importcpp: "#.start()".}
 proc stop*(s: VscodeLanguageClient): void {.importcpp: "#.stop()".}
+
+proc sendRequest*(s: VscodeLanguageClient,
+                  m: cstring,
+                  body: JsObject,
+                  token: VscodeCancellationToken): Future[JsObject] {.importcpp: "#.sendRequest(@)".}
 
 var vscodeLanguageClient*: VscodeLanguageClient = require("vscode-languageclient/node").to(VscodeLanguageClient)
