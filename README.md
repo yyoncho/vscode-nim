@@ -147,6 +147,8 @@ The following commands are provided by the extension:
 This command available from file context menu or by `F6` keyboard shortcut.
 
 * `Nim: Restart nimsuggest` - restart `nimsuggest` process when using `nimsuggest`.
+
+* `Nim: Expand Nim macro` - expand the macro at point when using `nimlangserver`
 ---
 
 ### Debugging

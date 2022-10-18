@@ -77,8 +77,8 @@ type
     containerName*: cstring
     kind*: VscodeSymbolKind
     location*: VscodeLocation
-  
-  VscodeSymbolTag* {.pure, nodecl.} = enum 
+
+  VscodeSymbolTag* {.pure, nodecl.} = enum
     deprecated = (1, "Deprecated")
 
   VscodeDocumentSymbol* = ref object
@@ -320,6 +320,9 @@ type
 
   VscodeSignatureHelpProvider* = ref VscodeSignatureHelpProviderObj
   VscodeSignatureHelpProviderObj {.importc.} = object of JsRoot
+
+  VscodeTextDocumentContentProvider * = ref VscodeTextDocumentContentProviderObj
+  VscodeTextDocumentContentProviderObj {.importc.} = object of JsRoot
 
   VscodeHoverProvider* = ref VscodeHoverProviderObj
   VscodeHoverProviderObj {.importc.} = object of JsRoot
@@ -582,6 +585,7 @@ proc newVscodeHover*(vscode: Vscode, contents: Array[VscodeMarkedString],
   `range`: VscodeRange): VscodeHover {.importcpp: "(new #.Hover(@))".}
 proc uriFile*(vscode: Vscode, file: cstring): VscodeUri {.
   importcpp: "(#.Uri.file(@))".}
+proc parse*(vscode: Vscode, uri: cstring): VscodeUri {.importcpp: "(#.Uri.parse(@))".}
 proc newWorkspaceFolderLike*(uri: VscodeUri, name: cstring,
   index: cint): VscodeWorkspaceFolder {.
   importcpp: "({uri:#, name:#, index:#})".}
@@ -858,6 +862,10 @@ proc get*[T](m: VscodeMemento, k: cstring, defaultVal: T): T {.importcpp.}
   ## stored value or the default value
 proc update*[T](m: VscodeMemento, k: cstring, v: T): Future[void] {.importcpp.}
   ## value must not contain cyclic references
+
+proc toString*(doc: VscodeUri): cstring {.importcpp.}
+proc openTextDocument*(wks: VscodeWorkspace, file: cstring): VscodeTextDocument {.importcpp.}
+proc showTextDocument*(wks: VscodeWindow, document: VscodeTextDocument, column: int, preserveFocus: bool): Future[VscodeTextEditor] {.importcpp.}
 
 var vscode*: Vscode = require("vscode").to(Vscode)
 

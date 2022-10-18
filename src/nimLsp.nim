@@ -1,11 +1,29 @@
 import std/jsconsole
 import platform/[vscodeApi, languageClientApi]
 
-import platform/js/[jsNodeFs, jsNodePath, jsNodeCp]
+import platform/js/[jsNodeFs, jsNodePath, jsNodeCp, jsNodeOs]
+import os
 
 from std/strformat import fmt
 from tools/nimBinTools import getNimbleExecPath, getBinPath
 from spec import ExtensionState
+
+proc expand(client: VscodeLanguageClient, doc: VscodeTextDocument = nil): Future[VscodeTextEditor] {.async.} =
+  var param = newJsObject()
+  var document = newJsObject()
+  document["uri"] = vscode.window.activeTextEditor.document.uri.toString()
+  param["position"] = vscode.window.activeTextEditor.selection.active
+  param["textDocument"] = document
+
+  let
+    res = client.sendRequest("extension/expandAll".cstring, param).await
+    content = res["content"].to(cstring)
+    tmpdir = $nodeOs.tmpdir()
+    tmpFile = cstring(tmpdir / "expandMacro.nim")
+
+  fs.writeFileSync(tmpFile, content)
+  let doc = vscode.workspace.openTextDocument(tmpFile)
+  return await vscode.window.showTextDocument(doc, 2, true)
 
 proc startLanguageServer(tryInstall: bool, state: ExtensionState) =
   let rawPath = getBinPath("nimlangserver")
@@ -44,5 +62,8 @@ proc startLanguageServer(tryInstall: bool, state: ExtensionState) =
        serverOptions,
        clientOptions)
     state.client.start()
+
+    vscode.commands.registerCommand("nim.expand") do (doc: VscodeTextDocument = nil) -> Future[void]:
+      discard expand(state.client, doc)
 
 export startLanguageServer
